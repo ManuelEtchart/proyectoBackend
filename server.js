@@ -13,9 +13,7 @@ app.get('/productos', (req, res) => {
 });
 
 app.get('/productoRandom', (req, res) => {
-    console.log(productos)
-    let productoAleatorio = productos.find(prod => prod.id === ((Math.random()*3)+1));
-    console.log(productoAleatorio)
+    let productoAleatorio = productos.find(prod => prod.id === Math.floor((Math.random()*3)+1));
     res.send({productoAleatorio: JSON.stringify(productoAleatorio)});
 });
 
