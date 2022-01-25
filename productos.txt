@@ -1,0 +1,20 @@
+[
+  {
+    "titulo": "silla",
+    "precio": 200,
+    "urlImagen": "urlImagenSilla",
+    "id": 1
+  },
+  {
+    "titulo": "mesa",
+    "precio": 1000,
+    "urlImagen": "urlImagenMesa",
+    "id": 2
+  },
+  {
+    "titulo": "colchón",
+    "precio": 5000,
+    "urlImagen": "urlImagenColchón",
+    "id": 3
+  }
+]
