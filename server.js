@@ -1,20 +1,25 @@
 const express = require('express');
 
-const Contenedor = require('./contenedor.js');
-
-const producto = new Contenedor('productos.txt');
-
-let productos = producto.getAll();
-
 const app = express();
 
-app.get('/productos', (req, res) => {
-    res.send({productos: JSON.stringify(productos)});
+const Contenedor = require('./contenedor');
+
+const producto = new Contenedor('./productos.txt');
+
+app.get('/', (req, res) => {
+    res.send("Bienvenidos - Ir a /productos o /productoRandom");
+})
+
+app.get('/productos', async (req, res) => {
+    let productos = await producto.getAll();
+    res.send({productos: `${JSON.stringify(productos)}`});
 });
 
-app.get('/productoRandom', (req, res) => {
-    let productoAleatorio = productos.find(prod => prod.id === Math.floor((Math.random()*3)+1));
-    res.send({productoAleatorio: JSON.stringify(productoAleatorio)});
+app.get('/productoRandom', async (req, res) => {
+    let productos = await producto.getAll();
+    let random = Math.floor((Math.random()*3)+1);
+    let productoAleatorio = productos.find(prod => prod.id === random);
+    res.send({productoAleatorio: `${JSON.stringify(productoAleatorio)}`});
 });
 
 const PORT = 8080;
