@@ -4,16 +4,93 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Productos</title>
+    <link rel="stylesheet" type="text/css" href="estilos.css">
+    <title>Formulario</title>
 </head>
 <body>
-    <h2>Ingrese un producto</h2>
-    <form action="/api/productos" method="post">
+    <p class="titulo">Ingrese un producto</p>
+    <p class="aviso" id="avisoForm"></p>
+    <form class="contenedor">
         <label>Nombre</label>
-        <input type="text" name="nombre">
+        <input type="text" name="nombre" placeholder="Nombre" id="nombre">
         <label>Precio</label>
-        <input type="number" name="precio">
-        <input type="submit" value="Ingresar">
+        <input type="number" name="precio" placeholder="Precio" id="precio">
+        <label>Foto</label>
+        <input type="text" name='urlFoto' placeholder="URL Foto" id="urlFoto">
+        <input type="button" id="ingresarProd" value="Ingresar" class="boton">
     </form>
+    <p class="titulo">Productos</p>
+    <div id="productos"></div>
+    <p class="titulo">Chat</p>
+    <p class="aviso" id="avisoChat"></p>
+    <form class="contenedor">
+        <label>Email</label>
+        <input type="email" name="email" id="email" placeholder="ejemplo@mail.com">
+        <label>Mensaje</label>
+        <input type="text" id="mensaje" name="mensaje" placeholder="Escribe tu mensaje">
+        <input type="button" id="enviarMsg" class="boton" value="Enviar">
+        
+    </form>
+    <div class="contenedor">
+        <p class="mensaje">Mensajes</p>
+        <div id="mensajes"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io.connect();
+
+        let nombre = document.querySelector('#nombre');
+        let precio = document.querySelector('#precio');
+        let urlFoto = document.querySelector('#urlFoto');
+    
+        const productoIngresado = document.querySelector('#ingresarProd');
+        productoIngresado.addEventListener('click', () => {
+
+            if(nombre.value === ''|| precio.value === ''|| urlFoto.value === ''){
+                document.querySelector('#avisoForm').innerText = 'Ingrese los todos los campos';
+            }else{
+                document.querySelector('#avisoForm').innerText = '';
+
+                socket.emit('productoIngresado', {
+                    nombre: nombre.value,
+                    precio: precio.value,
+                    foto: urlFoto.value
+                })
+            }
+        })
+
+        socket.on('productos', productos => {
+            const template = Handlebars.compile('{{#if productos}}<table><tr><th>Nombre</th><th>Precio</th><th>Foto</th></tr>{{#each productos}}<tr><td>{{this.nombre}}</td><td>${{this.precio}}</td><td><img src="{{this.foto}}"></td></tr>{{/each}}</table>{{else}}<p class="aviso">No hay productos</p>{{/if}}');
+            const htmlGenerado = template(productos);
+            document.querySelector('#productos').innerHTML = htmlGenerado;
+        })
+
+        let email = document.querySelector('#email');
+        let mensaje = document.querySelector('#mensaje');
+
+        const mensajeEnviado = document.querySelector('#enviarMsg');
+        mensajeEnviado.addEventListener('click', () => {
+
+            if(email.value === ''|| mensaje.value === ''){
+                document.querySelector('#avisoChat').innerText = 'Ingresar un e-mail o un mensaje es obligatorio';
+            }else{
+                document.querySelector('#avisoChat').innerText = '';
+
+                socket.emit('mensajeNuevo', {
+                    email: email.value,
+                    mensaje: mensaje.value
+                })
+            }
+        })
+
+        socket.on('mensajes', mensajes => {
+            const template = Handlebars.compile('{{#if mensajes}}{{#each mensajes}}<p class="mensajeCompleto"><b class="email">{{this.email}}</b> {{this.fecha}}: <i class="mensaje">{{this.mensaje}}</i></p>{{/each}}{{else}}<p class="aviso">No hay mensajes</p>{{/if}}');
+            const htmlGenerado = template(mensajes);
+            document.querySelector('#mensajes').innerHTML = htmlGenerado;
+        })
+         
+    </script>
 </body>
 </html>
