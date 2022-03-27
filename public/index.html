@@ -21,6 +21,9 @@
     </form>
     <p class="titulo">Productos</p>
     <div id="productos"></div>
+    <p class="titulo">Productos Aleatorios</p>
+    <a href="/api/productos-test"><button class="boton">Crear Tabla Productos Aleatorios</button></a>
+    <div id="productosAleatorios"></div>
     <p class="titulo">Chat</p>
     <p class="aviso" id="avisoChat"></p>
     <form class="contenedor">
@@ -89,6 +92,12 @@
             const template = Handlebars.compile('{{#if mensajes}}{{#each mensajes}}<p class="mensajeCompleto"><b class="email">{{this.email}}</b> {{this.fecha}}: <i class="mensaje">{{this.mensaje}}</i></p>{{/each}}{{else}}<p class="aviso">No hay mensajes</p>{{/if}}');
             const htmlGenerado = template(mensajes);
             document.querySelector('#mensajes').innerHTML = htmlGenerado;
+        })
+
+        socket.on('productosAleatorios', productosAleatorios => {
+            const template = Handlebars.compile('{{#if productosAleatorios}}<table><tr><th>Nombre</th><th>Precio</th><th>Foto</th></tr>{{#each productosAleatorios}}<tr><td>{{this.nombre}}</td><td>${{this.precio}}</td><td><img src="{{this.foto}}"></td></tr>{{/each}}</table>{{else}}<p class="aviso">No hay productos aleatorios</p>{{/if}}');
+            const htmlGenerado = template(productosAleatorios);
+            document.querySelector('#productosAleatorios').innerHTML = htmlGenerado;
         })
          
     </script>

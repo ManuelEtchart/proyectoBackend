@@ -1,9 +1,10 @@
 const express = require('express');
 const BasesDeDatos = require('./basesDeDatos')
 const { optionsSql } = require('./src/utils/optionsSql');
-const { optionsSqLite } = require('./utils/optionsSqLite');
+const { optionsSqLite } = require('./src/utils/optionsSqLite');
 const {Server: HttpServer} = require('http');
 const { Server: IOServer } = require('socket.io');
+const {faker} = require('@faker-js/faker')
 
 const sql = new BasesDeDatos(optionsSql, 'productos');
 const sqLite = new BasesDeDatos(optionsSqLite, 'mensajes');
@@ -18,11 +19,27 @@ app.use(express.urlencoded({extended: true}));
 app.use(express.static('public'));
 
 let productos = [];
+let productosAleatorios = [];
 let mensajes = [];
 let contador = 1;
 
+app.get('/api/productos-test', (req,res)=>{
+   productosAleatorios = [];
+   for (let i = 0; i < 5; i++) {
+      productosAleatorios.push({
+         id: i+1,
+         nombre: faker.commerce.product(),
+         precio: faker.commerce.price(),
+         foto: faker.image.abstract(70,70)
+      })
+   }
+   res.redirect('../index.html#productosAleatorios')
+})
+
 io.on('connection', (socket) => {
    console.log('Nuevo cliente conectado');
+
+   socket.emit('productosAleatorios', {productosAleatorios: productosAleatorios})
 
    socket.emit('productos', {productos: productos});
    

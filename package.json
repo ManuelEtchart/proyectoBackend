@@ -15,5 +15,8 @@
     "mysql": "^2.18.1",
     "socket.io": "^4.4.1",
     "sqlite3": "^5.0.2"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^6.0.0"
   }
 }
