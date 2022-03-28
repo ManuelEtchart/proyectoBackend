@@ -1,13 +1,16 @@
 const express = require('express');
 const BasesDeDatos = require('./basesDeDatos')
 const { optionsSql } = require('./src/utils/optionsSql');
-const { optionsSqLite } = require('./src/utils/optionsSqLite');
+//const { optionsSqLite } = require('./src/utils/optionsSqLite');
 const {Server: HttpServer} = require('http');
 const { Server: IOServer } = require('socket.io');
+
 const {faker} = require('@faker-js/faker')
+const Memoria = require('./src/contenedores/contenedorMemoria.js')
+const {normalizar} = require('./src/utils/normalizar.js')
 
 const sql = new BasesDeDatos(optionsSql, 'productos');
-const sqLite = new BasesDeDatos(optionsSqLite, 'mensajes');
+//const sqLite = new BasesDeDatos(optionsSqLite, 'mensajes');
 
 const app = express();
 const httpServer = new HttpServer(app);
@@ -18,50 +21,48 @@ app.use(express.urlencoded({extended: true}));
 
 app.use(express.static('public'));
 
-let productos = [];
-let productosAleatorios = [];
-let mensajes = [];
-let contador = 1;
+const productos = new Memoria();
+const productosAleatorios = new Memoria();
+const mensajes = new Memoria();
 
 app.get('/api/productos-test', (req,res)=>{
-   productosAleatorios = [];
+   productosAleatorios.deleteAll()
    for (let i = 0; i < 5; i++) {
-      productosAleatorios.push({
-         id: i+1,
+      productosAleatorios.save({
          nombre: faker.commerce.product(),
          precio: faker.commerce.price(),
-         foto: faker.image.abstract(70,70)
+         foto: faker.image.abstract()
       })
    }
-   res.redirect('../index.html#productosAleatorios')
+   res.redirect('../index.html')
 })
 
 io.on('connection', (socket) => {
    console.log('Nuevo cliente conectado');
 
-   socket.emit('productosAleatorios', {productosAleatorios: productosAleatorios})
+   socket.emit('productosAleatorios', {productosAleatorios: productosAleatorios.getAll()})
 
-   socket.emit('productos', {productos: productos});
+   socket.emit('productos', {productos: productos.getAll()});
    
-   socket.emit('mensajes', {mensajes: mensajes});
+   socket.emit('mensajes', {mensajes: normalizar(mensajes.getAll())});
 
    socket.on('productoIngresado',  producto => {
       sql.insert(producto);
-      producto.id = contador;
-      productos.push(producto);
-      contador = productos[productos.length - 1].id + 1;
-      io.sockets.emit('productos', {productos: productos})
-   });
+      productos.save(producto);
+      io.sockets.emit('productos', {productos: productos.getAll()})
+   })
    
    socket.on('mensajeNuevo', mensaje => {
-      let fechaactual = new Date();
-      mensaje.fecha = `[(${fechaactual.getDay()}/${fechaactual.getMonth()}/${fechaactual.getFullYear()} ${fechaactual.getHours()}:${fechaactual.getMinutes()}:${fechaactual.getSeconds()})]`;
-      console.log(mensaje);
-      mensajes.push(mensaje);
-      sqLite.insert(mensaje);
-      io.sockets.emit('mensajes', {mensajes: mensajes});
+      let fechaActual = new Date();
+      mensaje.fecha = `[(${fechaActual.getDay()}/${fechaActual.getMonth()}/${fechaActual.getFullYear()} ${fechaActual.getHours()}:${fechaActual.getMinutes()}:${fechaActual.getSeconds()})]`;
+      mensaje.author.avatar = faker.image.avatar();
+      mensajes.save(mensaje);
+      /*sqLite.insert(mensaje);*/
+      io.sockets.emit('mensajes', {mensajes: normalizar(mensajes.getAll())});
    });
 });
+
+
 
 const PORT = 8080;
 

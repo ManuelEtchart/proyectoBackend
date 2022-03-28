@@ -29,6 +29,14 @@
     <form class="contenedor">
         <label>Email</label>
         <input type="email" name="email" id="email" placeholder="ejemplo@mail.com">
+        <label>Nombre</label>
+        <input type="text" id="nombreMensaje" name="nombreMensaje" placeholder="Nombre">
+        <label>Apellido</label>
+        <input type="text" id="apellido" name="apellido" placeholder="Apellido">
+        <label>Edad</label>
+        <input type="text" id="edad" name="edad" placeholder="18">
+        <label>Alias</label>
+        <input type="text" id="alias" name="alias" placeholder="Alias">
         <label>Mensaje</label>
         <input type="text" id="mensaje" name="mensaje" placeholder="Escribe tu mensaje">
         <input type="button" id="enviarMsg" class="boton" value="Enviar">
@@ -39,6 +47,7 @@
         <div id="mensajes"></div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/normalizr@3.6.1/dist/normalizr.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
@@ -71,26 +80,42 @@
         })
 
         let email = document.querySelector('#email');
+        let nombreMensaje = document.querySelector('#nombreMensaje');
+        let apellido = document.querySelector('#apellido');
+        let edad = document.querySelector('#edad');
+        let alias = document.querySelector('#alias');
         let mensaje = document.querySelector('#mensaje');
 
         const mensajeEnviado = document.querySelector('#enviarMsg');
         mensajeEnviado.addEventListener('click', () => {
 
-            if(email.value === ''|| mensaje.value === ''){
-                document.querySelector('#avisoChat').innerText = 'Ingresar un e-mail o un mensaje es obligatorio';
+            if(email.value === ''|| mensaje.value === '' || nombreMensaje.value === '' || apellido.value === '' || edad.value === '' || alias.value === ''){
+                document.querySelector('#avisoChat').innerText = 'Todos los campos son obligatorios';
             }else{
                 document.querySelector('#avisoChat').innerText = '';
 
                 socket.emit('mensajeNuevo', {
-                    email: email.value,
-                    mensaje: mensaje.value
+                    author:{
+                       id: email.value,
+                       nombre: nombreMensaje.value,
+                       apellido: apellido.value,
+                       edad: edad.value,
+                       alias: alias.value
+                    },
+                    text: mensaje.value
                 })
             }
         })
 
         socket.on('mensajes', mensajes => {
-            const template = Handlebars.compile('{{#if mensajes}}{{#each mensajes}}<p class="mensajeCompleto"><b class="email">{{this.email}}</b> {{this.fecha}}: <i class="mensaje">{{this.mensaje}}</i></p>{{/each}}{{else}}<p class="aviso">No hay mensajes</p>{{/if}}');
-            const htmlGenerado = template(mensajes);
+            const user = new normalizr.schema.Entity('users',{idAttribute: 'email'})
+            const mensaje = new normalizr.schema.Entity('mensajes',{author: user})
+            const listaMensajes = new normalizr.schema.Entity('listaMensajes',{mensajes: [mensaje]},{idAttribute: 'id'})
+
+            const denormalizedData =  normalizr.denormalize(mensajes.mensajes.result, listaMensajes, mensajes.mensajes.entities)
+            
+            const template = Handlebars.compile('{{#if mensajes}}{{#each mensajes}}<img src={{this.author.avatar}}></img><p class="mensajeCompleto"><b class="email">{{this.author.id}}</b> {{this.fecha}}: <i class="mensaje">{{this.text}}</i></p>{{/each}}{{else}}<p class="aviso">No hay mensajes</p>{{/if}}');
+            const htmlGenerado = template(denormalizedData);
             document.querySelector('#mensajes').innerHTML = htmlGenerado;
         })
 
