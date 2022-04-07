@@ -10,8 +10,12 @@
   "license": "ISC",
   "dependencies": {
     "better-sqlite3": "^7.5.0",
+    "connect-mongo": "^4.6.0",
+    "cookie-parser": "^1.4.6",
     "express": "^4.17.2",
+    "express-session": "^1.17.2",
     "knex": "^1.0.3",
+    "mongodb": "^4.5.0",
     "mysql": "^2.18.1",
     "normalizr": "^3.6.2",
     "socket.io": "^4.4.1",

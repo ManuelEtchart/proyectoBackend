@@ -8,6 +8,8 @@
     <title>Formulario</title>
 </head>
 <body>
+    <div id="log"><a href="login.html">LOGIN</a></div>
+    
     <p class="titulo">Ingrese un producto</p>
     <p class="aviso" id="avisoForm"></p>
     <form class="contenedor">
@@ -123,6 +125,15 @@
             const template = Handlebars.compile('{{#if productosAleatorios}}<table><tr><th>Nombre</th><th>Precio</th><th>Foto</th></tr>{{#each productosAleatorios}}<tr><td>{{this.nombre}}</td><td>${{this.precio}}</td><td><img src="{{this.foto}}"></td></tr>{{/each}}</table>{{else}}<p class="aviso">No hay productos aleatorios</p>{{/if}}');
             const htmlGenerado = template(productosAleatorios);
             document.querySelector('#productosAleatorios').innerHTML = htmlGenerado;
+        })
+
+        
+
+        socket.on('logs', logs => {
+            const template = Handlebars.compile('{{#if nombre}}<p>Bienvenido {{nombre}}</p><form action="/api/logout" method="get"><a href="logout.html"><input type="submit" value="LogOut"></a></form>{{else}}<a href="login.html">LOGIN</a>{{/if}}');
+            const htmlGenerado = template(logs);
+            document.querySelector('#log').innerHTML = htmlGenerado;
+            console.log(logs)
         })
          
     </script>
